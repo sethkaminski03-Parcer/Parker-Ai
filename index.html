@@ -51,7 +51,52 @@
 </head>
   <link rel="manifest" href="manifest.json">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
-<body>
+
+<div id="parker-chat" style="
+  position: fixed;
+  bottom: 24px;
+  left: 5%;
+  width: 90%;
+  display: flex;
+  gap: 8px;
+  z-index: 10;
+">
+  <input
+    id="parker-message"
+    type="text"
+    placeholder="Talk to Parker..."
+    style="
+      flex: 1;
+      padding: 14px;
+      border-radius: 12px;
+      border: 1px solid #52647d;
+      background: #101a2b;
+      color: white;
+      font-size: 16px;
+    "
+  >
+  <button
+    id="parker-send"
+    style="
+      padding: 14px 18px;
+      border-radius: 12px;
+      border: none;
+      background: #315d91;
+      color: white;
+      font-size: 16px;
+    "
+  >Send</button>
+<div id="parker-response" style="
+  position: absolute;
+  bottom: 65px;
+  left: 0;
+  width: 100%;
+  color: white;
+  text-align: center;
+  font-size: 16px;
+">
+</div>
+</body>
   <h1>P.A.R.K.E.R.</h1>
   <div class="emblem">
   <img src="Futuristic Chrome P Emblem.png" alt="Parker emblem">
