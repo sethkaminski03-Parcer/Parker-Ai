@@ -6,6 +6,10 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="theme-color" content="#080d18">
   <title>P.A.R.K.E.R.</title>
+
+  <link rel="manifest" href="manifest.json">
+  <link rel="apple-touch-icon" href="apple-touch-icon.png">
+
   <style>
     * {
       box-sizing: border-box;
@@ -14,118 +18,123 @@
     body {
       margin: 0;
       min-height: 100vh;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
       background: radial-gradient(circle, #17263d, #080d18 70%);
       color: #eaf3ff;
       font-family: Arial, sans-serif;
+      overflow: hidden;
     }
 
     h1 {
-      margin-top: 45px;
+      position: fixed;
+      top: 25px;
+      left: 50%;
+      transform: translateX(-50%);
+      margin: 0;
       letter-spacing: 7px;
       font-size: 25px;
       font-weight: 400;
+      z-index: 2;
     }
 
-.emblem {
-  position: fixed;
-  top: 25%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  width: min(85vw, 1100px);
-  height: auto;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  z-index: 1;
-}
+    .emblem {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: min(85vw, 1100px);
+      z-index: 1;
+    }
 
-.emblem img {
-  width: 100%;
-  height: auto;
-  display: block;
-  object-fit: contain;
-}
-  </style>
-</head>
-  <link rel="manifest" href="manifest.json">
-<link rel="apple-touch-icon" href="apple-touch-icon.png">
+    .emblem img {
+      width: 100%;
+      height: auto;
+      display: block;
+      object-fit: contain;
+    }
 
-<div id="parker-chat" style="
-  position: fixed;
-  bottom: 25px;
-  left: 50%;
-  transform: translateX(-50%);
-  width: min(90%, 650px);
-  display: flex;
-  gap: 10px;
-  z-index: 20;
-">
-  <input
-    id="parker-message"
-    type="text"
-    placeholder="Talk to Parker..."
-    style="
+    #parker-chat {
+      position: fixed;
+      bottom: 25px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: min(90%, 650px);
+      display: flex;
+      gap: 10px;
+      z-index: 20;
+    }
+
+    #parker-message {
       flex: 1;
+      min-width: 0;
       padding: 14px;
       border-radius: 12px;
       border: 1px solid #52647d;
       background: #101a2b;
       color: white;
       font-size: 16px;
-    "
-  >
-  <button
-    id="parker-send"
-    style="
+    }
+
+    #parker-send {
       padding: 14px 18px;
       border-radius: 12px;
       border: none;
       background: #315d91;
       color: white;
       font-size: 16px;
-    "
-  >Send</button>
-<div id="parker-response" style="
-  position: absolute;
-  bottom: 65px;
-  left: 0;
-  width: 100%;
-  color: white;
-  text-align: center;
-  font-size: 16px;
-">
-</div>
-
-<script>
-  const parkerInput = document.getElementById("parker-message");
-  const parkerSend = document.getElementById("parker-send");
-  const parkerResponse = document.getElementById("parker-response");
-
-  parkerSend.addEventListener("click", function () {
-    const message = parkerInput.value.trim();
-
-    if (!message) return;
-
-    parkerResponse.textContent =
-      "Parker received: " + message;
-
-    parkerInput.value = "";
-  });
-
-  parkerInput.addEventListener("keydown", function (event) {
-    if (event.key === "Enter") {
-      parkerSend.click();
+      cursor: pointer;
     }
-  });
-</script>
 
-</body>
+    #parker-response {
+      position: absolute;
+      bottom: 65px;
+      left: 0;
+      width: 100%;
+      color: white;
+      text-align: center;
+      font-size: 16px;
+    }
+  </style>
+</head>
+
+<body>
+
   <h1>P.A.R.K.E.R.</h1>
+
   <div class="emblem">
-  <img src="Futuristic Chrome P Emblem.png" alt="Parker emblem">
-</div>
+    <img src="Futuristic Chrome P Emblem.png" alt="Parker emblem">
+  </div>
+
+  <div id="parker-chat">
+    <input
+      id="parker-message"
+      type="text"
+      placeholder="Talk to Parker..."
+    >
+    <button id="parker-send">Send</button>
+
+    <div id="parker-response"></div>
+  </div>
+
+  <script>
+    const parkerInput = document.getElementById("parker-message");
+    const parkerSend = document.getElementById("parker-send");
+    const parkerResponse = document.getElementById("parker-response");
+
+    parkerSend.addEventListener("click", function () {
+      const message = parkerInput.value.trim();
+
+      if (!message) return;
+
+      parkerResponse.textContent = "Parker received: " + message;
+      parkerInput.value = "";
+    });
+
+    parkerInput.addEventListener("keydown", function (event) {
+      if (event.key === "Enter") {
+        parkerSend.click();
+      }
+    });
+  </script>
+
 </body>
 </html>
