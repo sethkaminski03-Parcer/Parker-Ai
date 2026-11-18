@@ -96,6 +96,30 @@
   font-size: 16px;
 ">
 </div>
+
+<script>
+  const parkerInput = document.getElementById("parker-message");
+  const parkerSend = document.getElementById("parker-send");
+  const parkerResponse = document.getElementById("parker-response");
+
+  parkerSend.addEventListener("click", function () {
+    const message = parkerInput.value.trim();
+
+    if (!message) return;
+
+    parkerResponse.textContent =
+      "Parker received: " + message;
+
+    parkerInput.value = "";
+  });
+
+  parkerInput.addEventListener("keydown", function (event) {
+    if (event.key === "Enter") {
+      parkerSend.click();
+    }
+  });
+</script>
+
 </body>
   <h1>P.A.R.K.E.R.</h1>
   <div class="emblem">
