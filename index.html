@@ -144,28 +144,74 @@
   <button id="parker-send">Send</button>
 </div>
   <script>
-   const parkerInput = document.getElementById("parker-message");
+  
+const parkerInput = document.getElementById("parker-message");
 const parkerSend = document.getElementById("parker-send");
 const parkerConversation = document.getElementById("parker-conversation");
 
-function sendMessage() {
+const conversationHistory = [];
+
+async function sendMessage() {
   const message = parkerInput.value.trim();
 
-  if (!message) return;
+  if (!message || parkerSend.disabled) return;
+
+  conversationHistory.push({
+    role: "user",
+    content: message
+  });
 
   const userMessage = document.createElement("div");
   userMessage.className = "chat-message user-message";
   userMessage.textContent = message;
-
   parkerConversation.appendChild(userMessage);
 
   const parkerReply = document.createElement("div");
   parkerReply.className = "chat-message parker-message";
-  parkerReply.textContent = "Parker received: " + message;
-
+  parkerReply.textContent = "Parker is thinking...";
   parkerConversation.appendChild(parkerReply);
 
   parkerInput.value = "";
+  parkerSend.disabled = true;
+  parkerConversation.scrollTop = parkerConversation.scrollHeight;
+
+  try {
+    const response = await fetch(
+      "https://parker-ai.seth-kaminski03.workers.dev",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          messages: conversationHistory
+        })
+      }
+    );
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(data.error || "AI connection failed.");
+    }
+
+    conversationHistory.push({
+      role: "assistant",
+      content: data.reply
+    });
+
+    parkerReply.textContent = data.reply;
+
+  } catch (error) {
+    parkerReply.textContent =
+      "I'm having trouble connecting right now. Please try again.";
+    console.error("Parker AI error:", error);
+
+    conversationHistory.pop();
+  }
+
+  parkerSend.disabled = false;
+  parkerInput.focus();
   parkerConversation.scrollTop = parkerConversation.scrollHeight;
 }
 
@@ -176,6 +222,7 @@ parkerInput.addEventListener("keydown", function(event) {
     sendMessage();
   }
 });
+
   </script>
 
 </body>
