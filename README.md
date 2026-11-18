@@ -1,2 +1,2 @@
-# Parcer-Ai
-Parcer Ai
+# Parker-Ai
+Parker Ai
