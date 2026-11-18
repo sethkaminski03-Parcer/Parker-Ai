@@ -52,6 +52,39 @@
       object-fit: contain;
     }
 
+    #parker-conversation {
+  position: fixed;
+  bottom: 100px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: min(90%, 650px);
+  max-height: 45vh;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 10px;
+  z-index: 10;
+  color: white;
+}
+
+.chat-message {
+  padding: 12px 16px;
+  border-radius: 12px;
+  max-width: 85%;
+  overflow-wrap: anywhere;
+}
+
+.user-message {
+  align-self: flex-end;
+  background: #315d91;
+}
+
+.parker-message {
+  align-self: flex-start;
+  background: #17263d;
+  border: 1px solid #52647d;
+}
     #parker-chat {
       position: fixed;
       bottom: 25px;
@@ -104,36 +137,45 @@
     <img src="Futuristic Chrome P Emblem.png" alt="Parker emblem">
   </div>
 
-  <div id="parker-chat">
-    <input
-      id="parker-message"
-      type="text"
-      placeholder="Talk to Parker..."
-    >
-    <button id="parker-send">Send</button>
+<div id="parker-conversation"></div>
 
-    <div id="parker-response"></div>
-  </div>
-
+<div id="parker-chat">
+  <input id="parker-message" type="text" placeholder="Talk to Parker...">
+  <button id="parker-send">Send</button>
+</div>
   <script>
-    const parkerInput = document.getElementById("parker-message");
-    const parkerSend = document.getElementById("parker-send");
-    const parkerResponse = document.getElementById("parker-response");
+   const parkerInput = document.getElementById("parker-message");
+const parkerSend = document.getElementById("parker-send");
+const parkerConversation = document.getElementById("parker-conversation");
 
-    parkerSend.addEventListener("click", function () {
-      const message = parkerInput.value.trim();
+function sendMessage() {
+  const message = parkerInput.value.trim();
 
-      if (!message) return;
+  if (!message) return;
 
-      parkerResponse.textContent = "Parker received: " + message;
-      parkerInput.value = "";
-    });
+  const userMessage = document.createElement("div");
+  userMessage.className = "chat-message user-message";
+  userMessage.textContent = message;
 
-    parkerInput.addEventListener("keydown", function (event) {
-      if (event.key === "Enter") {
-        parkerSend.click();
-      }
-    });
+  parkerConversation.appendChild(userMessage);
+
+  const parkerReply = document.createElement("div");
+  parkerReply.className = "chat-message parker-message";
+  parkerReply.textContent = "Parker received: " + message;
+
+  parkerConversation.appendChild(parkerReply);
+
+  parkerInput.value = "";
+  parkerConversation.scrollTop = parkerConversation.scrollHeight;
+}
+
+parkerSend.addEventListener("click", sendMessage);
+
+parkerInput.addEventListener("keydown", function(event) {
+  if (event.key === "Enter") {
+    sendMessage();
+  }
+});
   </script>
 
 </body>
