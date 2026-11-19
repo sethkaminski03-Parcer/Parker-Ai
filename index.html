@@ -304,122 +304,42 @@ async function sendMessage() {
 
     parkerReply.textContent = data.reply;
   
- 
-try {
-  const speechResponse = await fetch(
-    "https://parker-ai.seth-kaminski03.workers.dev",
-    {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({
-        action: "speech",
-        text: data.reply
-      })
-    }
-  );
 
-  if (!speechResponse.ok) {
-    throw new Error("Parker's custom voice is unavailable");
-  }
-
-  const audioBlob = await speechResponse.blob();
-
-  if (!audioBlob.size) {
-    throw new Error("No audio received");
-  }
-
-  const audioUrl = URL.createObjectURL(audioBlob);
-  const parkerAudio = new Audio(audioUrl);
-  let fallbackUsed = false;
-
-  async function useBackupVoice() {
-    if (fallbackUsed) return;
-    fallbackUsed = true;
-
-    URL.revokeObjectURL(audioUrl);
-
-    if ("speechSynthesis" in window) {
-      const backupSpeech = new SpeechSynthesisUtterance(data.reply);
-      backupSpeech.lang = "en-US";
-      backupSpeech.rate = 1.0;
-      backupSpeech.pitch = 1.0;
-
-     const backupVoice = await getAaronVoice();
-
-if (!backupVoice) {
-  console.log("Aaron voice is not available yet.");
-  parkerSpeaking = false;
-
-  if (parkerListening) {
-    try {
-      parkerRecognition.start();
-    } catch (error) {
-      console.log("Parker listening restart:", error);
-    }
-  }
-
-  return;
-}
-
-backupSpeech.voice = backupVoice;
-
-window.speechSynthesis.cancel();
-      
-      backupSpeech.onend = () => {
-  parkerSpeaking = false;
-
-  if (parkerListening) {
-    try {
-      parkerRecognition.start();
-    } catch (error) {
-      console.log("Parker listening restart:", error);
-    }
-  }
-};
-      window.speechSynthesis.speak(backupSpeech);
-    }
-  }
-
- parkerAudio.onended = () => {
-  URL.revokeObjectURL(audioUrl);
-  parkerSpeaking = false;
-
-  if (parkerListening) {
-    try {
-      parkerRecognition.start();
-    } catch (error) {
-      console.log("Parker listening restart:", error);
-    }
-  }
-};
-  parkerAudio.onerror = useBackupVoice;
-
-  try {
-    await parkerAudio.play();
-  } catch (error) {
-    useBackupVoice();
-  }
-
-} catch (voiceError) {
-  console.log("Using Parker's backup voice:", voiceError);
-
-  if ("speechSynthesis" in window) {
-    const backupSpeech = new SpeechSynthesisUtterance(data.reply);
-    backupSpeech.lang = "en-US";
-
-  const backupVoice = await getAaronVoice();
-
-   if (backupVoice) {
-  backupSpeech.voice = backupVoice;
-
+if ("speechSynthesis" in window) {
   window.speechSynthesis.cancel();
 
-  backupSpeech.onend = () => {
+  const parkerSpeech = new SpeechSynthesisUtterance(data.reply);
+  parkerSpeech.lang = "en-US";
+  parkerSpeech.rate = 1.0;
+  parkerSpeech.pitch = 1.0;
+
+  parkerSpeaking = true;
+
+  const selectParkerVoice = () => {
+    const voices = window.speechSynthesis.getVoices();
+
+    return (
+      voices.find(voice => voice.name === "Aaron") ||
+      voices.find(voice =>
+        voice.lang.toLowerCase().startsWith("en") &&
+        /male|david|daniel|alex|fred/i.test(voice.name)
+      ) ||
+      null
+    );
+  };
+
+  const selectedVoice = selectParkerVoice();
+
+  if (selectedVoice) {
+    parkerSpeech.voice = selectedVoice;
+  } else {
+    console.log("No preferred male English voice found.");
+  }
+
+  const restartListening = () => {
     parkerSpeaking = false;
 
-    if (parkerListening) {
+    if (parkerListening && parkerRecognition) {
       try {
         parkerRecognition.start();
       } catch (error) {
@@ -428,37 +348,17 @@ window.speechSynthesis.cancel();
     }
   };
 
-  window.speechSynthesis.speak(backupSpeech);
+  parkerSpeech.onend = restartListening;
+  parkerSpeech.onerror = (event) => {
+    console.log("Parker speech error:", event.error);
+    restartListening();
+  };
+
+  window.speechSynthesis.speak(parkerSpeech);
 } else {
-  console.log("Aaron voice is unavailable.");
+  console.log("Built-in speech is not supported.");
   parkerSpeaking = false;
-
-  if (parkerListening) {
-    try {
-      parkerRecognition.start();
-    } catch (error) {
-      console.log("Parker listening restart:", error);
-    }
-  }
 }
-
-    window.speechSynthesis.cancel();
-    
-    backupSpeech.onend = () => {
-  parkerSpeaking = false;
-
-  if (parkerListening) {
-    try {
-      parkerRecognition.start();
-    } catch (error) {
-      console.log("Parker listening restart:", error);
-    }
-  }
-};
-    window.speechSynthesis.speak(backupSpeech);
-  }
-}
-
 
 
 
