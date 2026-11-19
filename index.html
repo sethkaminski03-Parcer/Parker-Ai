@@ -151,6 +151,87 @@ const parkerConversation = document.getElementById("parker-conversation");
 
 const conversationHistory = [];
 
+
+let parkerSleeping = false;
+let parkerRecognition = null;
+
+const SpeechRecognition =
+  window.SpeechRecognition || window.webkitSpeechRecognition;
+
+if (SpeechRecognition) {
+  parkerRecognition = new SpeechRecognition();
+  parkerRecognition.lang = "en-US";
+  parkerRecognition.continuous = true;
+  parkerRecognition.interimResults = false;
+
+  parkerRecognition.onresult = (event) => {
+    const lastResult = event.results[event.results.length - 1];
+
+    if (!lastResult.isFinal) return;
+
+    const spokenText = lastResult[0].transcript.trim();
+    const command = spokenText.toLowerCase();
+
+    if (command.includes("parker, go to sleep") ||
+        command.includes("parker go to sleep")) {
+      parkerSleeping = true;
+      window.speechSynthesis.cancel();
+      return;
+    }
+
+    if (parkerSleeping) {
+      if (command.includes("parker, wake up") ||
+          command.includes("parker wake up")) {
+        parkerSleeping = false;
+        parkerInput.value = "I'm awake. How can I help?";
+        sendMessage();
+      }
+      return;
+    }
+
+    parkerInput.value = spokenText;
+    sendMessage();
+  };
+
+
+parkerRecognition.onend = () => {
+  if (parkerListening) {
+    setTimeout(() => {
+      try {
+        parkerRecognition.start();
+      } catch (error) {
+        console.log("Parker listening restart:", error);
+      }
+    }, 300);
+  }
+};
+
+parkerRecognition.onerror = (event) => {
+  console.log("Parker listening error:", event.error);
+
+  if (event.error === "not-allowed" ||
+      event.error === "service-not-allowed") {
+    parkerListening = false;
+  }
+};
+
+document.addEventListener("click", () => {
+  if (parkerListening) return;
+
+  parkerListening = true;
+
+  try {
+    parkerRecognition.start();
+  } catch (error) {
+    parkerListening = false;
+    console.log("Parker could not start listening:", error);
+  }
+}, { once: true });
+} else {
+  console.log("Speech recognition is not supported in this browser.");
+}
+
+
 async function sendMessage() {
   const message = parkerInput.value.trim();
 
