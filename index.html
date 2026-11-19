@@ -198,15 +198,14 @@ if (SpeechRecognition) {
       return;
     }
 
-    if (parkerSleeping) {
-      if (command.includes("parker, wake up") ||
-          command.includes("parker wake up")) {
-        parkerSleeping = false;
-        parkerInput.value = "I'm awake. How can I help?";
-        sendMessage();
-      }
-      return;
-    }
+  if (parkerSleeping) {
+  if (command.includes("parker, wake up") ||
+      command.includes("parker wake up")) {
+    parkerSleeping = false;
+    console.log("Parker is awake and listening.");
+  }
+  return;
+}
     parkerSpeaking = true;
     parkerRecognition.stop();
     
