@@ -149,7 +149,18 @@ const parkerInput = document.getElementById("parker-message");
 const parkerSend = document.getElementById("parker-send");
 const parkerConversation = document.getElementById("parker-conversation");
 
-const conversationHistory = [];
+let conversationHistory = [];
+
+try {
+  const savedHistory = localStorage.getItem("parkerMemory");
+
+  if (savedHistory) {
+    conversationHistory = JSON.parse(savedHistory);
+  }
+} catch (error) {
+  console.log("Parker memory could not be loaded:", error);
+  conversationHistory = [];
+}
 
 
 let parkerSleeping = false;
@@ -300,7 +311,14 @@ async function sendMessage() {
       role: "assistant",
       content: data.reply
     });
-
+try {
+  localStorage.setItem(
+    "parkerMemory",
+    JSON.stringify(conversationHistory)
+  );
+} catch (error) {
+  console.error("Parker could not save memory:", error);
+}
     parkerReply.textContent = data.reply;
   
 
