@@ -201,7 +201,22 @@ async function sendMessage() {
     });
 
     parkerReply.textContent = data.reply;
+    const speech = new SpeechSynthesisUtterance(data.reply);
+    speech.lang = "en-US";
+    speech.rate = 1;
+    speech.pitch = 0.9;
 
+    const voices = window.speechSynthesis.getVoices();
+    const masculineVoice = voices.find(voice =>
+      /Alex|Daniel|Fred|Aaron|Arthur|Tom|David|Mark/i.test(voice.name)
+    );
+
+    if (masculineVoice) {
+      speech.voice = masculineVoice;
+    }
+
+    window.speechSynthesis.cancel();
+    window.speechSynthesis.speak(speech);
   } catch (error) {
     parkerReply.textContent =
       "I'm having trouble connecting right now. Please try again.";
