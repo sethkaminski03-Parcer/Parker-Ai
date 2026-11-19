@@ -156,6 +156,23 @@ let parkerSleeping = false;
 let parkerRecognition = null;
 let parkerListening = false;
 let parkerSpeaking = false;
+    async function getAaronVoice() {
+  const synth = window.speechSynthesis;
+
+  const findAaron = () =>
+    synth.getVoices().find(voice => voice.name === "Aaron") || null;
+
+  let voice = findAaron();
+
+  if (voice) return voice;
+
+  await new Promise(resolve => {
+    synth.addEventListener("voiceschanged", resolve, { once: true });
+    setTimeout(resolve, 2000);
+  });
+
+  return findAaron();
+}
     
 const SpeechRecognition =
   window.SpeechRecognition || window.webkitSpeechRecognition;
@@ -317,7 +334,7 @@ try {
   const parkerAudio = new Audio(audioUrl);
   let fallbackUsed = false;
 
-  function useBackupVoice() {
+  async function useBackupVoice() {
     if (fallbackUsed) return;
     fallbackUsed = true;
 
@@ -329,11 +346,24 @@ try {
       backupSpeech.rate = 1.0;
       backupSpeech.pitch = 1.0;
 
-      const voices = window.speechSynthesis.getVoices();
-    const backupVoice = voices.find(v => v.name === "Aaron");
+     const backupVoice = await getAaronVoice();
 
-      if (backupVoice) {
-        backupSpeech.voice = backupVoice;
+if (!backupVoice) {
+  console.log("Aaron voice is not available yet.");
+  parkerSpeaking = false;
+
+  if (parkerListening) {
+    try {
+      parkerRecognition.start();
+    } catch (error) {
+      console.log("Parker listening restart:", error);
+    }
+  }
+
+  return;
+}
+
+backupSpeech.voice = backupVoice;
       }
 
       window.speechSynthesis.cancel();
@@ -380,12 +410,24 @@ try {
     const backupSpeech = new SpeechSynthesisUtterance(data.reply);
     backupSpeech.lang = "en-US";
 
-    const voices = window.speechSynthesis.getVoices();
-    const backupVoice = voices.find(v => v.name === "Aaron");
+  const backupVoice = await getAaronVoice();
 
-    if (backupVoice) {
-      backupSpeech.voice = backupVoice;
+   if (!backupVoice) {
+  console.log("Aaron voice is unavailable.");
+  parkerSpeaking = false;
+
+  if (parkerListening) {
+    try {
+      parkerRecognition.start();
+    } catch (error) {
+      console.log("Parker listening restart:", error);
     }
+  }
+
+  return;
+}
+
+backupSpeech.voice = backupVoice;
 
     window.speechSynthesis.cancel();
     
