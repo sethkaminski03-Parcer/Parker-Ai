@@ -315,27 +315,16 @@ if ("speechSynthesis" in window) {
 
   parkerSpeaking = true;
 
-  const selectParkerVoice = () => {
-    const voices = window.speechSynthesis.getVoices();
+const aaronVoice = await getAaronVoice();
 
-    return (
-      voices.find(voice => voice.name === "Aaron") ||
-      voices.find(voice =>
-        voice.lang.toLowerCase().startsWith("en") &&
-        /male|david|daniel|alex|fred/i.test(voice.name)
-      ) ||
-      null
-    );
-  };
-
-  const selectedVoice = selectParkerVoice();
-
-  if (selectedVoice) {
-    parkerSpeech.voice = selectedVoice;
-  } else {
-    console.log("No preferred male English voice found.");
-  }
-
+if (aaronVoice) {
+  parkerSpeech.voice = aaronVoice;
+  console.log("Parker is using Aaron.");
+} else {
+  console.error("Aaron voice could not be loaded. Parker will not use a default voice.");
+  parkerSpeaking = false;
+  return;
+}
   const restartListening = () => {
     parkerSpeaking = false;
 
