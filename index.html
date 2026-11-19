@@ -155,7 +155,8 @@ const conversationHistory = [];
 let parkerSleeping = false;
 let parkerRecognition = null;
 let parkerListening = false;
-
+let parkerSpeaking = false;
+    
 const SpeechRecognition =
   window.SpeechRecognition || window.webkitSpeechRecognition;
 
@@ -189,14 +190,16 @@ if (SpeechRecognition) {
       }
       return;
     }
-
+    parkerSpeaking = true;
+    parkerRecognition.stop();
+    
     parkerInput.value = spokenText;
     sendMessage();
   };
 
 
 parkerRecognition.onend = () => {
-  if (parkerListening) {
+  if (parkerListening && !parkerSpeaking) {
     setTimeout(() => {
       try {
         parkerRecognition.start();
@@ -327,20 +330,41 @@ try {
       backupSpeech.pitch = 1.0;
 
       const voices = window.speechSynthesis.getVoices();
-      const backupVoice =
-        voices.find(v => v.name === "Aaron") ||
-        voices.find(v => /en-US/i.test(v.lang));
+    const backupVoice = voices.find(v => v.name === "Aaron");
 
       if (backupVoice) {
         backupSpeech.voice = backupVoice;
       }
 
       window.speechSynthesis.cancel();
+      
+      backupSpeech.onend = () => {
+  parkerSpeaking = false;
+
+  if (parkerListening) {
+    try {
+      parkerRecognition.start();
+    } catch (error) {
+      console.log("Parker listening restart:", error);
+    }
+  }
+};
       window.speechSynthesis.speak(backupSpeech);
     }
   }
 
-  parkerAudio.onended = () => URL.revokeObjectURL(audioUrl);
+ parkerAudio.onended = () => {
+  URL.revokeObjectURL(audioUrl);
+  parkerSpeaking = false;
+
+  if (parkerListening) {
+    try {
+      parkerRecognition.start();
+    } catch (error) {
+      console.log("Parker listening restart:", error);
+    }
+  }
+};
   parkerAudio.onerror = useBackupVoice;
 
   try {
@@ -357,15 +381,25 @@ try {
     backupSpeech.lang = "en-US";
 
     const voices = window.speechSynthesis.getVoices();
-    const backupVoice =
-      voices.find(v => v.name === "Aaron") ||
-      voices.find(v => /en-US/i.test(v.lang));
+    const backupVoice = voices.find(v => v.name === "Aaron");
 
     if (backupVoice) {
       backupSpeech.voice = backupVoice;
     }
 
     window.speechSynthesis.cancel();
+    
+    backupSpeech.onend = () => {
+  parkerSpeaking = false;
+
+  if (parkerListening) {
+    try {
+      parkerRecognition.start();
+    } catch (error) {
+      console.log("Parker listening restart:", error);
+    }
+  }
+};
     window.speechSynthesis.speak(backupSpeech);
   }
 }
