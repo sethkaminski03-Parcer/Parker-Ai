@@ -201,22 +201,34 @@ async function sendMessage() {
     });
 
     parkerReply.textContent = data.reply;
-    const speech = new SpeechSynthesisUtterance(data.reply);
-    speech.lang = "en-US";
-    speech.rate = 1;
-    speech.pitch = 0.9;
+  
+const speechResponse = await fetch(
+  "https://parker-ai.seth-kaminski03.workers.dev",
+  {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({
+      action: "speech",
+      text: data.reply
+    })
+  }
+);
 
-    const voices = window.speechSynthesis.getVoices();
-    const masculineVoice = voices.find(voice =>
-      /Alex|Daniel|Fred|Aaron|Arthur|Tom|David|Mark/i.test(voice.name)
-    );
+if (!speechResponse.ok) {
+  throw new Error("Parker voice unavailable");
+}
 
-    if (masculineVoice) {
-      speech.voice = masculineVoice;
-    }
+const audioBlob = await speechResponse.blob();
+const audioUrl = URL.createObjectURL(audioBlob);
+const parkerAudio = new Audio(audioUrl);
 
-    window.speechSynthesis.cancel();
-    window.speechSynthesis.speak(speech);
+parkerAudio.onended = () => URL.revokeObjectURL(audioUrl);
+parkerAudio.onerror = () => URL.revokeObjectURL(audioUrl);
+
+await parkerAudio.play();
+
   } catch (error) {
     parkerReply.textContent =
       "I'm having trouble connecting right now. Please try again.";
