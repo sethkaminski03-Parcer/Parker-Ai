@@ -203,31 +203,94 @@ async function sendMessage() {
     parkerReply.textContent = data.reply;
   
 const speechResponse = await fetch(
-  "https://parker-ai.seth-kaminski03.workers.dev",
-  {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json"
-    },
-    body: JSON.stringify({
-      action: "speech",
-      text: data.reply
-    })
-  }
-);
+ 
+try {
+  const speechResponse = await fetch(
+    "https://parker-ai.seth-kaminski03.workers.dev",
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        action: "speech",
+        text: data.reply
+      })
+    }
+  );
 
-if (!speechResponse.ok) {
-  throw new Error("Parker voice unavailable");
+  if (!speechResponse.ok) {
+    throw new Error("Parker's custom voice is unavailable");
+  }
+
+  const audioBlob = await speechResponse.blob();
+
+  if (!audioBlob.size) {
+    throw new Error("No audio received");
+  }
+
+  const audioUrl = URL.createObjectURL(audioBlob);
+  const parkerAudio = new Audio(audioUrl);
+  let fallbackUsed = false;
+
+  function useBackupVoice() {
+    if (fallbackUsed) return;
+    fallbackUsed = true;
+
+    URL.revokeObjectURL(audioUrl);
+
+    if ("speechSynthesis" in window) {
+      const backupSpeech = new SpeechSynthesisUtterance(data.reply);
+      backupSpeech.lang = "en-US";
+      backupSpeech.rate = 1.0;
+      backupSpeech.pitch = 1.0;
+
+      const voices = window.speechSynthesis.getVoices();
+      const backupVoice =
+        voices.find(v => v.name === "Aaron") ||
+        voices.find(v => /en-US/i.test(v.lang));
+
+      if (backupVoice) {
+        backupSpeech.voice = backupVoice;
+      }
+
+      window.speechSynthesis.cancel();
+      window.speechSynthesis.speak(backupSpeech);
+    }
+  }
+
+  parkerAudio.onended = () => URL.revokeObjectURL(audioUrl);
+  parkerAudio.onerror = useBackupVoice;
+
+  try {
+    await parkerAudio.play();
+  } catch (error) {
+    useBackupVoice();
+  }
+
+} catch (voiceError) {
+  console.log("Using Parker's backup voice:", voiceError);
+
+  if ("speechSynthesis" in window) {
+    const backupSpeech = new SpeechSynthesisUtterance(data.reply);
+    backupSpeech.lang = "en-US";
+
+    const voices = window.speechSynthesis.getVoices();
+    const backupVoice =
+      voices.find(v => v.name === "Aaron") ||
+      voices.find(v => /en-US/i.test(v.lang));
+
+    if (backupVoice) {
+      backupSpeech.voice = backupVoice;
+    }
+
+    window.speechSynthesis.cancel();
+    window.speechSynthesis.speak(backupSpeech);
+  }
 }
 
-const audioBlob = await speechResponse.blob();
-const audioUrl = URL.createObjectURL(audioBlob);
-const parkerAudio = new Audio(audioUrl);
 
-parkerAudio.onended = () => URL.revokeObjectURL(audioUrl);
-parkerAudio.onerror = () => URL.revokeObjectURL(audioUrl);
 
-await parkerAudio.play();
 
   } catch (error) {
     parkerReply.textContent =
