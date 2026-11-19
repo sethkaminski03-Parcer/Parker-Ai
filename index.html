@@ -364,9 +364,8 @@ if (!backupVoice) {
 }
 
 backupSpeech.voice = backupVoice;
-      }
 
-      window.speechSynthesis.cancel();
+window.speechSynthesis.cancel();
       
       backupSpeech.onend = () => {
   parkerSpeaking = false;
@@ -412,7 +411,25 @@ backupSpeech.voice = backupVoice;
 
   const backupVoice = await getAaronVoice();
 
-   if (!backupVoice) {
+   if (backupVoice) {
+  backupSpeech.voice = backupVoice;
+
+  window.speechSynthesis.cancel();
+
+  backupSpeech.onend = () => {
+    parkerSpeaking = false;
+
+    if (parkerListening) {
+      try {
+        parkerRecognition.start();
+      } catch (error) {
+        console.log("Parker listening restart:", error);
+      }
+    }
+  };
+
+  window.speechSynthesis.speak(backupSpeech);
+} else {
   console.log("Aaron voice is unavailable.");
   parkerSpeaking = false;
 
@@ -423,11 +440,7 @@ backupSpeech.voice = backupVoice;
       console.log("Parker listening restart:", error);
     }
   }
-
-  return;
 }
-
-backupSpeech.voice = backupVoice;
 
     window.speechSynthesis.cancel();
     
